@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
 import com.yash.excelfiledemo.dao.EmployeeDAO;
@@ -27,6 +28,17 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 			}
 		}
 		return true;
+	}
+
+	@Scheduled(cron = "0 10 16 * * * ")
+	public void dailyBackup() {
+		PreparedStatement pstmt = DBUtil.getPreparedStatement(
+				"INSERT INTO `test`.`employee_backup` (SELECT * FROM test.`employees` WHERE `test`.`employees`.`name` NOT IN (SELECT `test`.`employees`.`name` FROM `test`.`employees` INNER JOIN `test`.`employee_backup` ON `test`.`employees`.`name`=`test`.`employee_backup`.`name`))");
+		try {
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 
 }
